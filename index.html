@@ -1,0 +1,1359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UMHC Finance Admin Portal</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            line-height: 1.6;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1, h2 {
+            color: #1e3a8a;
+        }
+        .card {
+            background: #ffffff;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            padding: 10px;
+            border: 1px solid #ddd;
+            text-align: left;
+        }
+        th {
+            background-color: #1e3a8a;
+            color: white;
+        }
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+        .income {
+            color: green;
+        }
+        .expense {
+            color: red;
+        }
+        .actions {
+            margin-top: 20px;
+            display: flex;
+            gap: 10px;
+        }
+        button, select {
+            padding: 8px 16px;
+            background-color: #1e3a8a;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #2c4999;
+        }
+        input[type="file"], input[type="password"], input[type="text"] {
+            padding: 8px;
+            margin-bottom: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            width: 100%;
+            max-width: 300px;
+        }
+        .filter-section {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #eee;
+            border-radius: 4px;
+        }
+        .summary {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .summary-card {
+            background: white;
+            padding: 15px;
+            border-radius: 4px;
+            text-align: center;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .summary-card h3 {
+            margin: 0 0 10px 0;
+        }
+        .category-value {
+            font-weight: bold;
+            font-size: 1.2em;
+        }
+        #login-screen {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(5px);
+            z-index: 1000;
+        }
+        .login-container {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            width: 90%;
+            max-width: 400px;
+        }
+        .login-container h2 {
+            margin-top: 0;
+            text-align: center;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+        }
+        .header-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .user-panel {
+            text-align: right;
+        }
+        .tabs {
+            display: flex;
+            border-bottom: 1px solid #ddd;
+            margin-bottom: 20px;
+        }
+        .tab {
+            padding: 10px 15px;
+            cursor: pointer;
+            border: 1px solid transparent;
+            border-bottom: none;
+            margin-right: 5px;
+            border-radius: 4px 4px 0 0;
+            background-color: #f5f5f5;
+        }
+        .tab.active {
+            background-color: #1e3a8a;
+            color: white;
+            border-color: #ddd;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .password-field-container {
+            position: relative;
+        }
+        .toggle-password {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: #666;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <!-- Login Screen -->
+    <div id="login-screen">
+        <div class="login-container">
+            <h2>UMHC Finance Admin</h2>
+            <div id="login-form">
+                <div class="form-group">
+                    <label for="password">Treasurer Password:</label>
+                    <div class="password-field-container">
+                        <input type="password" id="password" placeholder="Enter password">
+                        <button type="button" class="toggle-password" onclick="togglePasswordVisibility()">Show</button>
+                    </div>
+                </div>
+                <button onclick="login()">Login</button>
+                <p id="login-message" style="color: red; margin-top: 10px;"></p>
+            </div>
+            <div id="first-time-setup" style="display: none;">
+                <h3>First Time Setup</h3>
+                <p>It looks like this is your first time using the system. Please set up a treasurer password:</p>
+                <div class="form-group">
+                    <label for="new-password">New Password:</label>
+                    <div class="password-field-container">
+                        <input type="password" id="new-password" placeholder="Enter new password">
+                        <button type="button" class="toggle-password" onclick="toggleNewPasswordVisibility()">Show</button>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="confirm-password">Confirm Password:</label>
+                    <div class="password-field-container">
+                        <input type="password" id="confirm-password" placeholder="Confirm new password">
+                        <button type="button" class="toggle-password" onclick="toggleConfirmPasswordVisibility()">Show</button>
+                    </div>
+                </div>
+                <button onclick="setupPassword()">Set Password</button>
+                <p id="setup-message" style="color: red; margin-top: 10px;"></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main App Container -->
+    <div class="container" id="app-container" style="display: none;">
+        <div class="header-actions">
+            <h1>UMHC Finance Admin Portal</h1>
+            <div class="user-panel">
+                <span id="last-login"></span>
+                <button onclick="showChangePasswordModal()">Change Password</button>
+                <button onclick="logout()">Logout</button>
+            </div>
+        </div>
+        
+        <!-- Tabs Navigation -->
+        <div class="tabs">
+            <div class="tab active" onclick="switchTab('import')">Import Data</div>
+            <div class="tab" onclick="switchTab('manage')">Manage Transactions</div>
+            <div class="tab" onclick="switchTab('export')">Export & Summary</div>
+            <div class="tab" onclick="switchTab('settings')">Settings</div>
+        </div>
+        
+        <!-- Import Tab -->
+        <div id="import-tab" class="tab-content active">
+            <div class="card">
+                <h2>Import Transactions</h2>
+                <p>Upload your bank statement CSV file:</p>
+                <input type="file" id="csvFile" accept=".csv">
+                <button onclick="importCSV()">Import CSV</button>
+                
+                <div class="example">
+                    <p>Expected format:</p>
+                    <pre>Date,Description,Amount
+22/04/2025,Trip food expense,-75.60
+23/04/2025,Membership payment,30.00</pre>
+                </div>
+            </div>
+            
+            <div class="card summary">
+                <div class="summary-card">
+                    <h3>Total Income</h3>
+                    <div class="category-value income" id="total-income">£0.00</div>
+                </div>
+                <div class="summary-card">
+                    <h3>Total Expenses</h3>
+                    <div class="category-value expense" id="total-expenses">£0.00</div>
+                </div>
+                <div class="summary-card">
+                    <h3>Balance</h3>
+                    <div class="category-value" id="balance">£0.00</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Manage Transactions Tab -->
+        <div id="manage-tab" class="tab-content">
+            <div class="card">
+                <h2>Transaction Management</h2>
+                
+                <div class="filter-section">
+                    <h3>Bulk Edit Selected Items</h3>
+                    <div>
+                        <label for="category-select">Category:</label>
+                        <select id="category-select">
+                            <option value="">--Select Category--</option>
+                            <option value="Transport">Transport</option>
+                            <option value="Accommodation">Accommodation</option>
+                            <option value="Food">Food</option>
+                            <option value="Equipment">Equipment</option>
+                            <option value="Membership">Membership</option>
+                            <option value="Ticket">Ticket</option>
+                            <option value="Other">Other</option>
+                        </select>
+                        
+                        <label for="event-select">Event:</label>
+                        <select id="event-select">
+                            <option value="">--Select Event--</option>
+                            <option value="Torridon 2025">Torridon 2025</option>
+                            <option value="Snowdon Mar 2025">Snowdon Mar 2025</option>
+                            <option value="Welsh 3000s 2025">Welsh 3000s 2025</option>
+                            <option value="Grasmere May 2025">Grasmere May 2025</option>
+                        </select>
+                        
+                        <label for="member-input">Member Name:</label>
+                        <input type="text" id="member-input" placeholder="Enter member name">
+                        
+                        <button onclick="applyToSelected()">Apply to Selected</button>
+                    </div>
+                    
+                    <div style="margin-top: 10px;">
+                        <button onclick="saveFilterRule()">Save as Filter Rule</button>
+                        <button onclick="clearFilters()">Clear All Filters</button>
+                    </div>
+                </div>
+                
+                <div class="actions">
+                    <button onclick="selectAll()">Select All</button>
+                    <button onclick="deselectAll()">Deselect All</button>
+                    <button onclick="saveChanges()">Save Changes</button>
+                </div>
+                
+                <div id="transaction-table-container">
+                    <table id="transaction-table">
+                        <thead>
+                            <tr>
+                                <th><input type="checkbox" id="select-all-checkbox" onchange="toggleSelectAll()"></th>
+                                <th>Date</th>
+                                <th>Description</th>
+                                <th>Amount</th>
+                                <th>Type</th>
+                                <th>Category</th>
+                                <th>Event</th>
+                                <th>Member Name</th>
+                            </tr>
+                        </thead>
+                        <tbody id="transaction-body">
+                            <!-- Transactions will be added here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Export Tab -->
+        <div id="export-tab" class="tab-content">
+            <div class="card">
+                <h2>Export Data</h2>
+                <p>Export your data in different formats:</p>
+                <button onclick="exportEnhancedCSV()">Export Enhanced CSV</button>
+                <button onclick="generateSummaryJSON()">Generate Summary JSON</button>
+                <p>The Enhanced CSV is for your records and contains all transaction details.</p>
+                <p>The Summary JSON is for the public view-only site and excludes sensitive information.</p>
+            </div>
+            
+            <div class="card">
+                <h2>Data Preview</h2>
+                <div id="export-preview">
+                    <p>No data to preview. Please import transactions first.</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Settings Tab -->
+        <div id="settings-tab" class="tab-content">
+            <div class="card">
+                <h2>Settings</h2>
+                <div class="form-group">
+                    <label>Categories:</label>
+                    <div id="categories-container">
+                        <!-- Categories will be added here -->
+                    </div>
+                    <button onclick="addCategory()">Add Category</button>
+                </div>
+                
+                <div class="form-group">
+                    <label>Events:</label>
+                    <div id="events-container">
+                        <!-- Events will be added here -->
+                    </div>
+                    <button onclick="addEvent()">Add Event</button>
+                </div>
+                
+                <div class="form-group">
+                    <button onclick="saveSettings()">Save Settings</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Change Password Modal -->
+    <div id="change-password-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); z-index: 1000;">
+        <div style="background: white; width: 80%; max-width: 400px; margin: 100px auto; padding: 20px; border-radius: 8px;">
+            <h2>Change Password</h2>
+            <div class="form-group">
+                <label for="current-password">Current Password:</label>
+                <input type="password" id="current-password">
+            </div>
+            <div class="form-group">
+                <label for="change-new-password">New Password:</label>
+                <input type="password" id="change-new-password">
+            </div>
+            <div class="form-group">
+                <label for="change-confirm-password">Confirm New Password:</label>
+                <input type="password" id="change-confirm-password">
+            </div>
+            <div style="display: flex; justify-content: space-between;">
+                <button onclick="changePassword()">Change Password</button>
+                <button onclick="hideChangePasswordModal()">Cancel</button>
+            </div>
+            <p id="change-password-message" style="color: red; margin-top: 10px;"></p>
+        </div>
+    </div>
+
+    <script>
+        // Authentication variables
+        let isAuthenticated = false;
+        let categories = ['Transport', 'Accommodation', 'Food', 'Equipment', 'Membership', 'Ticket', 'Other'];
+        let events = ['Torridon 2025', 'Snowdon Mar 2025', 'Welsh 3000s 2025', 'Grasmere May 2025'];
+        
+        // Store all transactions
+        let transactions = [];
+        
+        // Check if password is set up
+        function checkFirstTimeSetup() {
+            const hashedPassword = localStorage.getItem('umhc_treasurer_pwd');
+            if (!hashedPassword) {
+                // Show first time setup
+                document.getElementById('login-form').style.display = 'none';
+                document.getElementById('first-time-setup').style.display = 'block';
+            } else {
+                // Show login form
+                document.getElementById('login-form').style.display = 'block';
+                document.getElementById('first-time-setup').style.display = 'none';
+            }
+        }
+        
+        // Simple hash function for password
+        function hashPassword(password) {
+            // This is a simple hash for demonstration
+            // In a production environment, use a more secure method
+            let hash = 0;
+            for (let i = 0; i < password.length; i++) {
+                const char = password.charCodeAt(i);
+                hash = ((hash << 5) - hash) + char;
+                hash = hash & hash; // Convert to 32bit integer
+            }
+            return hash.toString();
+        }
+        
+        // Set up initial password
+        function setupPassword() {
+            const newPassword = document.getElementById('new-password').value;
+            const confirmPassword = document.getElementById('confirm-password').value;
+            
+            if (newPassword === '') {
+                document.getElementById('setup-message').textContent = 'Password cannot be empty';
+                return;
+            }
+            
+            if (newPassword !== confirmPassword) {
+                document.getElementById('setup-message').textContent = 'Passwords do not match';
+                return;
+            }
+            
+            // Hash and store the password
+            const hashedPassword = hashPassword(newPassword);
+            localStorage.setItem('umhc_treasurer_pwd', hashedPassword);
+            
+            // Show success message and switch to login
+            document.getElementById('setup-message').textContent = 'Password set successfully!';
+            document.getElementById('setup-message').style.color = 'green';
+            
+            setTimeout(() => {
+                document.getElementById('login-form').style.display = 'block';
+                document.getElementById('first-time-setup').style.display = 'none';
+                document.getElementById('setup-message').textContent = '';
+            }, 1500);
+        }
+        
+        // Login function
+        function login() {
+            const password = document.getElementById('password').value;
+            const hashedPassword = hashPassword(password);
+            const storedPassword = localStorage.getItem('umhc_treasurer_pwd');
+            
+            if (hashedPassword === storedPassword) {
+                // Login successful
+                isAuthenticated = true;
+                
+                // Store login time
+                const loginTime = new Date().toISOString();
+                localStorage.setItem('umhc_last_login', loginTime);
+                
+                // Hide login screen and show app
+                document.getElementById('login-screen').style.display = 'none';
+                document.getElementById('app-container').style.display = 'block';
+                
+                // Display last login time
+                const lastLogin = localStorage.getItem('umhc_last_login');
+                if (lastLogin) {
+                    const formattedDate = new Date(lastLogin).toLocaleString('en-GB');
+                    document.getElementById('last-login').textContent = `Last login: ${formattedDate}`;
+                }
+                
+                // Load any saved data
+                loadSavedData();
+            } else {
+                // Login failed
+                document.getElementById('login-message').textContent = 'Incorrect password. Please try again.';
+            }
+        }
+        
+        // Logout function
+        function logout() {
+            isAuthenticated = false;
+            document.getElementById('app-container').style.display = 'none';
+            document.getElementById('login-screen').style.display = 'flex';
+            document.getElementById('password').value = '';
+            document.getElementById('login-message').textContent = '';
+        }
+        
+        // Show/hide password
+        function togglePasswordVisibility() {
+            const passwordField = document.getElementById('password');
+            const toggleButton = document.querySelector('#login-form .toggle-password');
+            
+            if (passwordField.type === 'password') {
+                passwordField.type = 'text';
+                toggleButton.textContent = 'Hide';
+            } else {
+                passwordField.type = 'password';
+                toggleButton.textContent = 'Show';
+            }
+        }
+        
+        function toggleNewPasswordVisibility() {
+            const passwordField = document.getElementById('new-password');
+            const toggleButton = document.querySelector('#first-time-setup .toggle-password:first-of-type');
+            
+            if (passwordField.type === 'password') {
+                passwordField.type = 'text';
+                toggleButton.textContent = 'Hide';
+            } else {
+                passwordField.type = 'password';
+                toggleButton.textContent = 'Show';
+            }
+        }
+        
+        function toggleConfirmPasswordVisibility() {
+            const passwordField = document.getElementById('confirm-password');
+            const toggleButton = document.querySelector('#first-time-setup .toggle-password:last-of-type');
+            
+            if (passwordField.type === 'password') {
+                passwordField.type = 'text';
+                toggleButton.textContent = 'Hide';
+            } else {
+                passwordField.type = 'password';
+                toggleButton.textContent = 'Show';
+            }
+        }
+        
+        // Change password functions
+        function showChangePasswordModal() {
+            document.getElementById('change-password-modal').style.display = 'block';
+            document.getElementById('current-password').value = '';
+            document.getElementById('change-new-password').value = '';
+            document.getElementById('change-confirm-password').value = '';
+            document.getElementById('change-password-message').textContent = '';
+        }
+        
+        function hideChangePasswordModal() {
+            document.getElementById('change-password-modal').style.display = 'none';
+        }
+        
+        function changePassword() {
+            const currentPassword = document.getElementById('current-password').value;
+            const newPassword = document.getElementById('change-new-password').value;
+            const confirmPassword = document.getElementById('change-confirm-password').value;
+            
+            // Verify current password
+            const hashedCurrentPassword = hashPassword(currentPassword);
+            const storedPassword = localStorage.getItem('umhc_treasurer_pwd');
+            
+            if (hashedCurrentPassword !== storedPassword) {
+                document.getElementById('change-password-message').textContent = 'Current password is incorrect';
+                return;
+            }
+            
+            if (newPassword === '') {
+                document.getElementById('change-password-message').textContent = 'New password cannot be empty';
+                return;
+            }
+            
+            if (newPassword !== confirmPassword) {
+                document.getElementById('change-password-message').textContent = 'New passwords do not match';
+                return;
+            }
+            
+            // Hash and store the new password
+            const hashedNewPassword = hashPassword(newPassword);
+            localStorage.setItem('umhc_treasurer_pwd', hashedNewPassword);
+            
+            // Show success message and close modal
+            document.getElementById('change-password-message').textContent = 'Password changed successfully!';
+            document.getElementById('change-password-message').style.color = 'green';
+            
+            setTimeout(() => {
+                hideChangePasswordModal();
+            }, 1500);
+        }
+        
+        // Tab switching
+        function switchTab(tabName) {
+            // Hide all tabs
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Deactivate all tab buttons
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Show selected tab
+            document.getElementById(`${tabName}-tab`).classList.add('active');
+            
+            // Activate selected tab button
+            document.querySelectorAll('.tab').forEach(tab => {
+                if (tab.textContent.toLowerCase().includes(tabName)) {
+                    tab.classList.add('active');
+                }
+            });
+        }
+        
+        // Load saved data
+        function loadSavedData() {
+            // Load categories
+            const savedCategories = localStorage.getItem('umhc_categories');
+            if (savedCategories) {
+                categories = JSON.parse(savedCategories);
+            }
+            
+            // Load events
+            const savedEvents = localStorage.getItem('umhc_events');
+            if (savedEvents) {
+                events = JSON.parse(savedEvents);
+            }
+            
+            // Load transactions
+            const savedTransactions = localStorage.getItem('umhc_transactions');
+            if (savedTransactions) {
+                transactions = JSON.parse(savedTransactions);
+                renderTransactionTable();
+                updateSummary();
+                updateExportPreview();
+            }
+            
+            // Update settings tab
+            updateCategoriesUI();
+            updateEventsUI();
+        }
+        
+        // Update categories in the UI
+        function updateCategoriesUI() {
+            const container = document.getElementById('categories-container');
+            container.innerHTML = '';
+            
+            categories.forEach((category, index) => {
+                const categoryDiv = document.createElement('div');
+                categoryDiv.style.display = 'flex';
+                categoryDiv.style.marginBottom = '5px';
+                
+                const input = document.createElement('input');
+                input.type = 'text';
+                input.value = category;
+                input.dataset.index = index;
+                input.onchange = function() {
+                    categories[this.dataset.index] = this.value;
+                };
+                
+                const removeButton = document.createElement('button');
+                removeButton.textContent = 'Remove';
+                removeButton.dataset.index = index;
+                removeButton.onclick = function() {
+                    removeCategory(this.dataset.index);
+                };
+                
+                categoryDiv.appendChild(input);
+                categoryDiv.appendChild(removeButton);
+                container.appendChild(categoryDiv);
+            });
+            
+            // Update category dropdowns
+            updateCategoryDropdowns();
+        }
+        
+        // Add a new category
+        function addCategory() {
+            categories.push('New Category');
+            updateCategoriesUI();
+        }
+        
+        // Remove a category
+        function removeCategory(index) {
+            categories.splice(index, 1);
+            updateCategoriesUI();
+        }
+        
+        // Update events in the UI
+        function updateEventsUI() {
+            const container = document.getElementById('events-container');
+            container.innerHTML = '';
+            
+            events.forEach((event, index) => {
+                const eventDiv = document.createElement('div');
+                eventDiv.style.display = 'flex';
+                eventDiv.style.marginBottom = '5px';
+                
+                const input = document.createElement('input');
+                input.type = 'text';
+                input.value = event;
+                input.dataset.index = index;
+                input.onchange = function() {
+                    events[this.dataset.index] = this.value;
+                };
+                
+                const removeButton = document.createElement('button');
+                removeButton.textContent = 'Remove';
+                removeButton.dataset.index = index;
+                removeButton.onclick = function() {
+                    removeEvent(this.dataset.index);
+                };
+                
+                eventDiv.appendChild(input);
+                eventDiv.appendChild(removeButton);
+                container.appendChild(eventDiv);
+            });
+            
+            // Update event dropdowns
+            updateEventDropdowns();
+        }
+        
+        // Add a new event
+        function addEvent() {
+            events.push('New Event');
+            updateEventsUI();
+        }
+        
+        // Remove an event
+        function removeEvent(index) {
+            events.splice(index, 1);
+            updateEventsUI();
+        }
+        
+        // Save settings
+        function saveSettings() {
+            localStorage.setItem('umhc_categories', JSON.stringify(categories));
+            localStorage.setItem('umhc_events', JSON.stringify(events));
+            alert('Settings saved successfully!');
+        }
+        
+        // Update category dropdowns
+        function updateCategoryDropdowns() {
+            const categorySelect = document.getElementById('category-select');
+            categorySelect.innerHTML = '<option value="">--Select Category--</option>';
+            
+            categories.forEach(category => {
+                const option = document.createElement('option');
+                option.value = category;
+                option.textContent = category;
+                categorySelect.appendChild(option);
+            });
+        }
+        
+        // Update event dropdowns
+        function updateEventDropdowns() {
+            const eventSelect = document.getElementById('event-select');
+            eventSelect.innerHTML = '<option value="">--Select Event--</option>';
+            
+            events.forEach(event => {
+                const option = document.createElement('option');
+                option.value = event;
+                option.textContent = event;
+                eventSelect.appendChild(option);
+            });
+        }
+        
+        // Parse CSV data
+        function parseCSV(csv) {
+            const lines = csv.split('\n');
+            const headers = lines[0].split(',');
+            
+            const result = [];
+            for (let i = 1; i < lines.length; i++) {
+                // Skip empty lines
+                if (lines[i].trim() === '') continue;
+                
+                const values = lines[i].split(',');
+                const row = {};
+                
+                for (let j = 0; j < headers.length; j++) {
+                    let value = values[j];
+                    if (headers[j] === 'Amount') {
+                        value = parseFloat(value);
+                    }
+                    row[headers[j]] = value;
+                }
+                
+                // Add additional fields
+                row['Type'] = row['Amount'] >= 0 ? 'Income' : 'Expense';
+                row['Category'] = '';
+                row['Event'] = '';
+                row['MemberName'] = '';
+                row['selected'] = false;
+                
+                result.push(row);
+            }
+            
+            return result;
+        }
+        
+        // Import CSV file
+        function importCSV() {
+            const fileInput = document.getElementById('csvFile');
+            const file = fileInput.files[0];
+            
+            if (!file) {
+                alert('Please select a CSV file');
+                return;
+            }
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const contents = e.target.result;
+                transactions = parseCSV(contents);
+                renderTransactionTable();
+                updateSummary();
+                updateExportPreview();
+                
+                // Save transactions to local storage
+                localStorage.setItem('umhc_transactions', JSON.stringify(transactions));
+                
+                // Switch to manage tab
+                switchTab('manage');
+            };
+            
+            reader.readAsText(file);
+        }
+        
+        // Render transaction table
+        function renderTransactionTable() {
+            const tbody = document.getElementById('transaction-body');
+            tbody.innerHTML = '';
+            
+            transactions.forEach((transaction, index) => {
+                const row = document.createElement('tr');
+                
+                // Checkbox cell
+                const checkboxCell = document.createElement('td');
+                const checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                checkbox.checked = transaction.selected;
+                checkbox.onchange = function() {
+                    transactions[index].selected = this.checked;
+                };
+                checkboxCell.appendChild(checkbox);
+                row.appendChild(checkboxCell);
+                
+                // Date cell
+                const dateCell = document.createElement('td');
+                dateCell.textContent = transaction.Date;
+                row.appendChild(dateCell);
+                
+                // Description cell
+                const descCell = document.createElement('td');
+                descCell.textContent = transaction.Description;
+                row.appendChild(descCell);
+                
+                // Amount cell
+                const amountCell = document.createElement('td');
+                const amountFormatted = new Intl.NumberFormat('en-GB', { 
+                    style: 'currency', 
+                    currency: 'GBP' 
+                }).format(transaction.Amount);
+                amountCell.textContent = amountFormatted;
+                amountCell.className = transaction.Type.toLowerCase();
+                row.appendChild(amountCell);
+                
+                // Type cell
+                const typeCell = document.createElement('td');
+                typeCell.textContent = transaction.Type;
+                row.appendChild(typeCell);
+                
+                // Category cell
+                const categoryCell = document.createElement('td');
+                const categorySelect = document.createElement('select');
+                categorySelect.innerHTML = `<option value="">--Select--</option>`;
+                
+                categories.forEach(category => {
+                    const option = document.createElement('option');
+                    option.value = category;
+                    option.textContent = category;
+                    if (transaction.Category === category) {
+                        option.selected = true;
+                    }
+                    categorySelect.appendChild(option);
+                });
+                
+                categorySelect.onchange = function() {
+                    transactions[index].Category = this.value;
+                    localStorage.setItem('umhc_transactions', JSON.stringify(transactions));
+                };
+                categoryCell.appendChild(categorySelect);
+                row.appendChild(categoryCell);
+                
+                // Event cell
+                const eventCell = document.createElement('td');
+                const eventSelect = document.createElement('select');
+                eventSelect.innerHTML = `<option value="">--Select--</option>`;
+                
+                events.forEach(event => {
+                    const option = document.createElement('option');
+                    option.value = event;
+                    option.textContent = event;
+                    if (transaction.Event === event) {
+                        option.selected = true;
+                    }
+                    eventSelect.appendChild(option);
+                });
+                
+                eventSelect.onchange = function() {
+                    transactions[index].Event = this.value;
+                    localStorage.setItem('umhc_transactions', JSON.stringify(transactions));
+                };
+                eventCell.appendChild(eventSelect);
+                row.appendChild(eventCell);
+                
+                // Member name cell
+                const memberCell = document.createElement('td');
+                const memberInput = document.createElement('input');
+                memberInput.type = 'text';
+                memberInput.value = transaction.MemberName || '';
+                memberInput.onchange = function() {
+                    transactions[index].MemberName = this.value;
+                    localStorage.setItem('umhc_transactions', JSON.stringify(transactions));
+                };
+                memberCell.appendChild(memberInput);
+                row.appendChild(memberCell);
+                
+                tbody.appendChild(row);
+            });
+        }
+        
+        // Apply category, event, and member name to selected transactions
+        function applyToSelected() {
+            const category = document.getElementById('category-select').value;
+            const event = document.getElementById('event-select').value;
+            const memberName = document.getElementById('member-input').value;
+            
+            let updated = 0;
+            
+            transactions.forEach(transaction => {
+                if (transaction.selected) {
+                    if (category) {
+                        transaction.Category = category;
+                    }
+                    if (event) {
+                        transaction.Event = event;
+                    }
+                    if (memberName) {
+                        transaction.MemberName = memberName;
+                    }
+                    updated++;
+                }
+            });
+            
+            if (updated > 0) {
+                renderTransactionTable();
+                updateExportPreview();
+                localStorage.setItem('umhc_transactions', JSON.stringify(transactions));
+                alert(`Updated ${updated} transactions`);
+            } else {
+                alert('No transactions selected');
+            }
+        }
+        
+        // Save changes to transactions
+        function saveChanges() {
+            localStorage.setItem('umhc_transactions', JSON.stringify(transactions));
+            updateSummary();
+            updateExportPreview();
+            alert('Changes saved successfully!');
+        }
+        
+        // Select all transactions
+        function selectAll() {
+            transactions.forEach(transaction => {
+                transaction.selected = true;
+            });
+            renderTransactionTable();
+        }
+        
+        // Deselect all transactions
+        function deselectAll() {
+            transactions.forEach(transaction => {
+                transaction.selected = false;
+            });
+            renderTransactionTable();
+        }
+        
+        // Toggle select all checkbox
+        function toggleSelectAll() {
+            const selectAllCheckbox = document.getElementById('select-all-checkbox');
+            transactions.forEach(transaction => {
+                transaction.selected = selectAllCheckbox.checked;
+            });
+            renderTransactionTable();
+        }
+        
+        // Export enhanced CSV
+        function exportEnhancedCSV() {
+            if (transactions.length === 0) {
+                alert('No transactions to export');
+                return;
+            }
+            
+            const headers = ['Date', 'Description', 'Amount', 'Type', 'Category', 'Event', 'MemberName'];
+            
+            let csvContent = headers.join(',') + '\n';
+            
+            transactions.forEach(transaction => {
+                const row = headers.map(header => {
+                    const value = transaction[header];
+                    // Handle strings with commas by wrapping in quotes
+                    return typeof value === 'string' && value.includes(',') ? `"${value}"` : value;
+                });
+                csvContent += row.join(',') + '\n';
+            });
+            
+            const blob = new Blob([csvContent], { type: 'text/csv' });
+            const url = URL.createObjectURL(blob);
+            
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'UMHC_Enhanced_Transactions.csv';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        }
+        
+        // Generate summary JSON for the public site
+        function generateSummaryJSON() {
+            if (transactions.length === 0) {
+                alert('No transactions to export');
+                return;
+            }
+            
+            // Create summarized data that doesn't include personal details
+            const summary = {
+                lastUpdated: new Date().toISOString(),
+                totalIncome: 0,
+                totalExpenses: 0,
+                balance: 0,
+                byCategory: {},
+                byEvent: {},
+                byMonth: {},
+                recentTransactions: []
+            };
+            
+            // Calculate totals
+            transactions.forEach(transaction => {
+                if (transaction.Type === 'Income') {
+                    summary.totalIncome += transaction.Amount;
+                } else {
+                    summary.totalExpenses += Math.abs(transaction.Amount);
+                }
+                
+                // Summarize by category
+                const category = transaction.Category || 'Uncategorized';
+                if (!summary.byCategory[category]) {
+                    summary.byCategory[category] = {
+                        income: 0,
+                        expenses: 0
+                    };
+                }
+                
+                if (transaction.Type === 'Income') {
+                    summary.byCategory[category].income += transaction.Amount;
+                } else {
+                    summary.byCategory[category].expenses += Math.abs(transaction.Amount);
+                }
+                
+                // Summarize by event
+                if (transaction.Event) {
+                    if (!summary.byEvent[transaction.Event]) {
+                        summary.byEvent[transaction.Event] = {
+                            income: 0,
+                            expenses: 0
+                        };
+                    }
+                    
+                    if (transaction.Type === 'Income') {
+                        summary.byEvent[transaction.Event].income += transaction.Amount;
+                    } else {
+                        summary.byEvent[transaction.Event].expenses += Math.abs(transaction.Amount);
+                    }
+                }
+                
+                // Summarize by month
+                try {
+                    const dateParts = transaction.Date.split('/');
+                    const day = parseInt(dateParts[0], 10);
+                    const month = parseInt(dateParts[1], 10) - 1; // JS months are 0-indexed
+                    const year = parseInt(dateParts[2], 10);
+                    
+                    const date = new Date(year, month, day);
+                    const monthKey = date.toISOString().substring(0, 7); // YYYY-MM format
+                    
+                    if (!summary.byMonth[monthKey]) {
+                        summary.byMonth[monthKey] = {
+                            income: 0,
+                            expenses: 0
+                        };
+                    }
+                    
+                    if (transaction.Type === 'Income') {
+                        summary.byMonth[monthKey].income += transaction.Amount;
+                    } else {
+                        summary.byMonth[monthKey].expenses += Math.abs(transaction.Amount);
+                    }
+                } catch (e) {
+                    console.error('Error parsing date:', transaction.Date, e);
+                }
+                
+                // Add to recent transactions (without member names)
+                summary.recentTransactions.push({
+                    date: transaction.Date,
+                    description: transaction.Description,
+                    amount: transaction.Amount,
+                    type: transaction.Type,
+                    category: category,
+                    event: transaction.Event || null
+                });
+            });
+            
+            // Sort recent transactions by date (newest first) and limit to 10
+            summary.recentTransactions.sort((a, b) => {
+                const dateA = new Date(a.date.split('/').reverse().join('-'));
+                const dateB = new Date(b.date.split('/').reverse().join('-'));
+                return dateB - dateA;
+            });
+            summary.recentTransactions = summary.recentTransactions.slice(0, 10);
+            
+            // Calculate balance
+            summary.balance = summary.totalIncome - summary.totalExpenses;
+            
+            // Create and download JSON file
+            const jsonString = JSON.stringify(summary, null, 2);
+            const blob = new Blob([jsonString], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'UMHC_Finance_Summary.json';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            
+            alert('Summary JSON generated for public site. You should upload this file to your public repository.');
+        }
+        
+        // Save filter as a rule (placeholder for future functionality)
+        function saveFilterRule() {
+            alert('This functionality will allow you to save the current filter settings for future use. To be implemented in Phase 2.');
+        }
+        
+        // Clear all filters
+        function clearFilters() {
+            document.getElementById('category-select').value = '';
+            document.getElementById('event-select').value = '';
+            document.getElementById('member-input').value = '';
+        }
+        
+        // Update summary figures
+        function updateSummary() {
+            let totalIncome = 0;
+            let totalExpenses = 0;
+            
+            transactions.forEach(transaction => {
+                if (transaction.Type === 'Income') {
+                    totalIncome += transaction.Amount;
+                } else {
+                    totalExpenses += Math.abs(transaction.Amount);
+                }
+            });
+            
+            const balance = totalIncome - totalExpenses;
+            
+            document.getElementById('total-income').textContent = new Intl.NumberFormat('en-GB', { 
+                style: 'currency', 
+                currency: 'GBP' 
+            }).format(totalIncome);
+            
+            document.getElementById('total-expenses').textContent = new Intl.NumberFormat('en-GB', { 
+                style: 'currency', 
+                currency: 'GBP' 
+            }).format(totalExpenses);
+            
+            document.getElementById('balance').textContent = new Intl.NumberFormat('en-GB', { 
+                style: 'currency', 
+                currency: 'GBP' 
+            }).format(balance);
+        }
+        
+        // Update export preview
+        function updateExportPreview() {
+            const previewContainer = document.getElementById('export-preview');
+            
+            if (transactions.length === 0) {
+                previewContainer.innerHTML = '<p>No data to preview. Please import transactions first.</p>';
+                return;
+            }
+            
+            let previewHTML = '<h3>Sample of Enhanced CSV</h3>';
+            previewHTML += '<table style="width: 100%; margin-bottom: 20px;">';
+            previewHTML += '<tr><th>Date</th><th>Description</th><th>Amount</th><th>Type</th><th>Category</th><th>Event</th></tr>';
+            
+            // Show first 5 transactions
+            const samplesToShow = Math.min(transactions.length, 5);
+            for (let i = 0; i < samplesToShow; i++) {
+                const t = transactions[i];
+                previewHTML += `<tr>
+                    <td>${t.Date}</td>
+                    <td>${t.Description}</td>
+                    <td>${new Intl.NumberFormat('en-GB', {style: 'currency', currency: 'GBP'}).format(t.Amount)}</td>
+                    <td>${t.Type}</td>
+                    <td>${t.Category || 'Uncategorized'}</td>
+                    <td>${t.Event || '-'}</td>
+                </tr>`;
+            }
+            
+            previewHTML += '</table>';
+            
+            // Summary JSON preview
+            previewHTML += '<h3>Summary JSON Preview</h3>';
+            previewHTML += '<p>This anonymized data will be shared with the public site.</p>';
+            
+            // Calculate summary data for preview
+            let totalIncome = 0;
+            let totalExpenses = 0;
+            const categorySummary = {};
+            const eventSummary = {};
+            
+            transactions.forEach(t => {
+                if (t.Type === 'Income') {
+                    totalIncome += t.Amount;
+                } else {
+                    totalExpenses += Math.abs(t.Amount);
+                }
+                
+                // Category summary
+                const category = t.Category || 'Uncategorized';
+                if (!categorySummary[category]) {
+                    categorySummary[category] = { income: 0, expenses: 0 };
+                }
+                
+                if (t.Type === 'Income') {
+                    categorySummary[category].income += t.Amount;
+                } else {
+                    categorySummary[category].expenses += Math.abs(t.Amount);
+                }
+                
+                // Event summary
+                if (t.Event) {
+                    if (!eventSummary[t.Event]) {
+                        eventSummary[t.Event] = { income: 0, expenses: 0 };
+                    }
+                    
+                    if (t.Type === 'Income') {
+                        eventSummary[t.Event].income += t.Amount;
+                    } else {
+                        eventSummary[t.Event].expenses += Math.abs(t.Amount);
+                    }
+                }
+            });
+            
+            const balance = totalIncome - totalExpenses;
+            
+            previewHTML += `<p>Total Income: ${new Intl.NumberFormat('en-GB', {style: 'currency', currency: 'GBP'}).format(totalIncome)}</p>`;
+            previewHTML += `<p>Total Expenses: ${new Intl.NumberFormat('en-GB', {style: 'currency', currency: 'GBP'}).format(totalExpenses)}</p>`;
+            previewHTML += `<p>Balance: ${new Intl.NumberFormat('en-GB', {style: 'currency', currency: 'GBP'}).format(balance)}</p>`;
+            
+            // Top categories
+            previewHTML += '<h4>Top Categories</h4>';
+            previewHTML += '<table style="width: 100%;">';
+            previewHTML += '<tr><th>Category</th><th>Income</th><th>Expenses</th></tr>';
+            
+            Object.entries(categorySummary)
+                .sort((a, b) => (b[1].income + b[1].expenses) - (a[1].income + a[1].expenses))
+                .slice(0, 3)
+                .forEach(([category, data]) => {
+                    previewHTML += `<tr>
+                        <td>${category}</td>
+                        <td>${new Intl.NumberFormat('en-GB', {style: 'currency', currency: 'GBP'}).format(data.income)}</td>
+                        <td>${new Intl.NumberFormat('en-GB', {style: 'currency', currency: 'GBP'}).format(data.expenses)}</td>
+                    </tr>`;
+                });
+            
+            previewHTML += '</table>';
+            
+            // Events summary
+            if (Object.keys(eventSummary).length > 0) {
+                previewHTML += '<h4>Events Summary</h4>';
+                previewHTML += '<table style="width: 100%;">';
+                previewHTML += '<tr><th>Event</th><th>Income</th><th>Expenses</th><th>Balance</th></tr>';
+                
+                Object.entries(eventSummary)
+                    .sort((a, b) => (b[1].income + b[1].expenses) - (a[1].income + a[1].expenses))
+                    .forEach(([event, data]) => {
+                        const eventBalance = data.income - data.expenses;
+                        previewHTML += `<tr>
+                            <td>${event}</td>
+                            <td>${new Intl.NumberFormat('en-GB', {style: 'currency', currency: 'GBP'}).format(data.income)}</td>
+                            <td>${new Intl.NumberFormat('en-GB', {style: 'currency', currency: 'GBP'}).format(data.expenses)}</td>
+                            <td>${new Intl.NumberFormat('en-GB', {style: 'currency', currency: 'GBP'}).format(eventBalance)}</td>
+                        </tr>`;
+                    });
+                
+                previewHTML += '</table>';
+            }
+            
+            previewContainer.innerHTML = previewHTML;
+        }
+        
+        // Add sample data for demonstration
+        function loadSampleData() {
+            const sampleCSV = `Date,Description,Amount
+23/04/2025,Torridon Fuel - Fergus,-231.51
+23/04/2025,Torridon Parking - Fergus,-9.00
+24/04/2025,Torridon Food - Fergus,-389.90
+31/03/2025,UMHC UOM STUDENT MEMBERSHIP,39.00
+31/03/2025,SNOWDON MAR 2025 MEMBER TICKET,825.00
+08/04/2025,WELSH 3000S PREARRANGED TICKET 2025,1610.00
+08/04/2025,5x replacement battery for Orange radios,-23.35
+18/04/2025,Hire of hostel Canolfan Corris,-1400.00`;
+            
+            if (!localStorage.getItem('umhc_transactions')) {
+                transactions = parseCSV(sampleCSV);
+                localStorage.setItem('umhc_transactions', JSON.stringify(transactions));
+            }
+        }
+        
+        // Initialize the application
+        window.onload = function() {
+            checkFirstTimeSetup();
+            loadSampleData();
+        };
+    </script>
+</body>
+</html>
